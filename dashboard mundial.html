@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA World Cup - Data Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <nav class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white shadow-xl sticky top-0 z-50 border-b border-indigo-500/20">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl">📊</span>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight">FIFA World Cup Advanced Analytics</h1>
+                    <p class="text-xs text-indigo-300">Base de Datos Consolidada (Historial Completo Verificado)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3 bg-slate-900/90 p-2 rounded-xl border border-slate-700/60 shadow-inner">
+                <label for="yearFilter" class="text-xs font-bold text-indigo-300 uppercase tracking-wider pl-1">Seleccionar Edición:</label>
+                <select id="yearFilter" class="bg-slate-800 text-white text-sm rounded-lg border border-slate-600 p-2 focus:ring-2 focus:ring-indigo-500 font-semibold cursor-pointer">
+                    <option value="ALL">🌎 Historial Consolidado (1930 - 2022)</option>
+                    <option value="1930">Uruguay 1930</option>
+                    <option value="1934">Italia 1934</option>
+                    <option value="1938">Francia 1938</option>
+                    <option value="1950">Brasil 1950</option>
+                    <option value="1954">Suiza 1954</option>
+                    <option value="1958">Suecia 1958</option>
+                    <option value="1962">Chile 1962</option>
+                    <option value="1966">Inglaterra 1966</option>
+                    <option value="1970">México 1970</option>
+                    <option value="1974">Alemania 1974</option>
+                    <option value="1978">Argentina 1978</option>
+                    <option value="1982">España 1982</option>
+                    <option value="1986">México 1986</option>
+                    <option value="1990">Italia 1990</option>
+                    <option value="1994">Estados Unidos 1994</option>
+                    <option value="1998">Francia 1998</option>
+                    <option value="2002">Corea - Japón 2002</option>
+                    <option value="2006">Alemania 2006</option>
+                    <option value="2010">Sudáfrica 2010</option>
+                    <option value="2014">Brasil 2014</option>
+                    <option value="2018">Rusia 2018</option>
+                    <option value="2022">Qatar 2022</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-gradient-to-br from-indigo-900 to-indigo-950 text-white p-4 rounded-xl shadow-xs border border-indigo-800">
+                <p class="text-xs text-indigo-300 font-bold uppercase tracking-wider">Sede / Host</p>
+                <h3 id="infoHost" class="text-xl font-black mt-1">-</h3>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
+                <p class="text-xs text-emerald-600 font-bold uppercase tracking-wider">🏆 Campeón</p>
+                <h3 id="infoChamp" class="text-xl font-black text-slate-900 mt-1">-</h3>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">🥈 Subcampeón</p>
+                <h3 id="infoRunner" class="text-xl font-black text-slate-800 mt-1">-</h3>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200">
+                <p class="text-xs text-amber-600 font-bold uppercase tracking-wider">⚽ Goleador Oficial</p>
+                <h3 id="infoScorer" class="text-sm font-bold text-slate-800 mt-1.5 truncate">-</h3>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <p class="text-xs font-bold text-slate-400 uppercase">Partidos</p>
+                <h4 id="kpiMatches" class="text-2xl font-black mt-1">-</h4>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <p class="text-xs font-bold text-slate-400 uppercase">Goles Reales</p>
+                <h4 id="kpiGoals" class="text-2xl font-black text-rose-600 mt-1">-</h4>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <p class="text-xs font-bold text-slate-400 uppercase">Métrica xG</p>
+                <h4 id="kpiXG" class="text-2xl font-black text-blue-600 mt-1">-</h4>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <p class="text-xs font-bold text-slate-400 uppercase">Público Total</p>
+                <h4 id="kpiAttendance" class="text-xl font-black text-slate-800 mt-1">-</h4>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs col-span-2 lg:col-span-1 flex justify-around items-center bg-slate-50">
+                <div class="text-center">
+                    <p class="text-[10px] font-bold text-amber-600 uppercase">🟨 Amarillas</p>
+                    <span id="kpiYellow" class="text-lg font-black text-slate-800">-</span>
+                </div>
+                <div class="w-px h-8 bg-slate-200"></div>
+                <div class="text-center">
+                    <p class="text-[10px] font-bold text-rose-600 uppercase">🟥 Rojas</p>
+                    <span id="kpiRed" class="text-lg font-black text-slate-800">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+            <h5 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <span>🏳️‍🌈</span> Selecciones en Competencia Activa (<span id="countTeams">0</span>)
+            </h5>
+            <div id="participantsBox" class="flex flex-wrap gap-2 max-h-24 overflow-y-auto custom-scroll py-1"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs lg:col-span-2 h-[330px] flex flex-col">
+                <h4 id="mainChartTitle" class="text-xs font-bold text-slate-400 uppercase mb-3">Análisis de Tendencias</h4>
+                <div class="relative grow w-full"><canvas id="chartMetrics"></canvas></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs h-[330px] flex flex-col">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Distribución de Resultados</h4>
+                <div class="relative grow w-full flex items-center justify-center"><canvas id="chartDona"></canvas></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs h-[360px] flex flex-col">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Top 5 Equipos Más Goleadores</h4>
+                <div class="relative grow w-full"><canvas id="chartTopTeams"></canvas></div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs lg:col-span-2 h-[360px] flex flex-col">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Partidos de Mayor Impacto / Goleadas Históricas</h4>
+                <div class="overflow-y-auto grow border border-slate-100 rounded-lg custom-scroll">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="sticky top-0 bg-slate-900 text-white font-semibold z-10">
+                            <tr>
+                                <th class="p-3">Ronda / Etapa</th>
+                                <th class="p-3">Partido</th>
+                                <th class="p-3 text-center">Marcador</th>
+                                <th class="p-3 text-right pr-4">Goles</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchesTableBody" class="divide-y divide-slate-200 text-slate-700 font-medium"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const dataModel = {
+            "timeline": {
+                "1930": {"goals_avg": 3.89}, "1934": {"goals_avg": 4.12}, "1938": {"goals_avg": 4.67}, "1950": {"goals_avg": 4.00},
+                "1954": {"goals_avg": 5.38}, "1958": {"goals_avg": 3.60}, "1962": {"goals_avg": 2.78}, "1966": {"goals_avg": 2.78},
+                "1970": {"goals_avg": 2.97}, "1974": {"goals_avg": 2.55}, "1978": {"goals_avg": 2.68}, "1982": {"goals_avg": 2.81},
+                "1986": {"goals_avg": 2.54}, "1990": {"goals_avg": 2.21}, "1994": {"goals_avg": 2.71}, "1998": {"goals_avg": 2.67},
+                "2002": {"goals_avg": 2.52}, "2006": {"goals_avg": 2.30}, "2010": {"goals_avg": 2.27}, "2014": {"goals_avg": 2.67},
+                "2018": {"goals_avg": 2.64}, "2022": {"goals_avg": 2.69}
+            },
+            "master": {
+                "ALL": {
+                    host: "Múltiples", champ: "Brasil (5)", runner: "Alemania", top_scorer: "Miroslav Klose - 16", attendance: 43912136,
+                    matches: 964, goals: 2720, total_xg: 2684.5, red_cards: 174, yellow_cards: 2110, dist: [545, 222, 197],
+                    top_teams: ["Brasil", "Alemania", "Argentina", "Italia", "Francia"], top_goals: [237, 232, 152, 128, 136],
+                    participants: ["Argentina", "Brasil", "Alemania", "Italia", "Francia", "España", "Inglaterra", "Países Bajos", "Uruguay", "Suecia", "México", "Bélgica", "Croacia"],
+                    matches_list: [{r:"Fase Grupos (1954)", m:"Austria v Suiza", s:"7-5", g:12}, {r:"Fase Grupos (1982)", m:"Hungría v El Salvador", s:"10-1", g:11}]
+                },
+                "1930": {
+                    host: "Uruguay", champ: "Uruguay", runner: "Argentina", top_scorer: "Guillermo Stábile - 8", attendance: 593049,
+                    matches: 18, goals: 70, total_xg: 63.8, red_cards: 1, yellow_cards: 0, dist: [13, 5, 0],
+                    top_teams: ["Argentina", "Uruguay", "EE.UU."], top_goals: [18, 15, 7], participants: ["Argentina", "Brasil", "Uruguay", "Francia", "EE.UU.", "Bélgica"],
+                    matches_list: [{r:"Final", m:"Uruguay v Argentina", s:"4-2", g:6}]
+                },
+                "1934": {
+                    host: "Italia", champ: "Italia", runner: "Checoslovaquia", top_scorer: "Oldřich Nejedlý - 5", attendance: 363000,
+                    matches: 17, goals: 70, total_xg: 68.2, red_cards: 0, yellow_cards: 0, dist: [13, 3, 1],
+                    top_teams: ["Italia", "Alemania", "Checoslovaquia"], top_goals: [12, 11, 9], participants: ["Italia", "Alemania", "Checoslovaquia", "España", "Francia"],
+                    matches_list: [{r:"Primera Ronda", m:"Italia v EE.UU.", s:"7-1", g:8}]
+                },
+                "1938": {
+                    host: "Francia", champ: "Italia", runner: "Hungría", top_scorer: "Leônidas - 7", attendance: 375700,
+                    matches: 18, goals: 84, total_xg: 81.4, red_cards: 4, yellow_cards: 0, dist: [10, 5, 3],
+                    top_teams: ["Hungría", "Brasil", "Italia"], top_goals: [15, 14, 12], participants: ["Francia", "Italia", "Brasil", "Hungría", "Suecia", "Polonia"],
+                    matches_list: [{r:"Primera Ronda", m:"Brasil v Polonia", s:"6-5", g:11}]
+                },
+                "1950": {
+                    host: "Brasil", champ: "Uruguay", runner: "Brasil", top_scorer: "Ademir - 8", attendance: 1045246,
+                    matches: 22, goals: 88, total_xg: 83.1, red_cards: 0, yellow_cards: 0, dist: [14, 5, 3],
+                    top_teams: ["Brasil", "Uruguay", "Suecia"], top_goals: [22, 15, 11], participants: ["Brasil", "Uruguay", "España", "Suecia", "Inglaterra", "Italia"],
+                    matches_list: [{r:"Ronda Final", m:"Brasil v Suecia", s:"7-1", g:8}]
+                },
+                "1954": {
+                    host: "Suiza", champ: "Alemania", runner: "Hungría", top_scorer: "Sándor Kocsis - 11", attendance: 768600,
+                    matches: 26, goals: 140, total_xg: 134.5, red_cards: 3, yellow_cards: 0, dist: [19, 7, 0],
+                    top_teams: ["Hungría", "Alemania Occ.", "Austria"], top_goals: [27, 25, 17], participants: ["Alemania Occ.", "Hungría", "Austria", "Uruguay", "Suiza", "Brasil"],
+                    matches_list: [{r:"Cuartos", m:"Austria v Suiza", s:"7-5", g:12}]
+                },
+                "1958": {
+                    host: "Suecia", champ: "Brasil", runner: "Suecia", top_scorer: "Just Fontaine - 13", attendance: 819810,
+                    matches: 35, goals: 126, total_xg: 121.0, red_cards: 3, yellow_cards: 0, dist: [15, 10, 10],
+                    top_teams: ["Francia", "Brasil", "Suecia"], top_goals: [23, 16, 12], participants: ["Brasil", "Suecia", "Francia", "Alemania Occ.", "Unión Soviética"],
+                    matches_list: [{r:"Tercer Puesto", m:"Francia v Alemania Occ.", s:"6-3", g:9}]
+                },
+                "1962": {
+                    host: "Chile", champ: "Brasil", runner: "Checoslovaquia", top_scorer: "Leonel Sánchez, Flórián Albert... - 4", attendance: 893172,
+                    matches: 32, goals: 89, total_xg: 84.1, red_cards: 6, yellow_cards: 0, dist: [17, 8, 7],
+                    top_teams: ["Brasil", "Chile", "Checoslovaquia", "Yugoslavia", "Hungría"], top_goals: [14, 10, 7, 10, 8],
+                    participants: ["Brasil", "Checoslovaquia", "Chile", "Yugoslavia", "Hungría", "Unión Soviética", "Alemania Occ.", "Inglaterra", "Italia", "Argentina", "España", "México"],
+                    matches_list: [{r:"Semifinal", m:"Brasil v Chile", s:"4-2", g:6}, {r:"Fase Grupos", m:"Unión Soviética v Colombia", s:"4-4", g:8}]
+                },
+                "1966": {
+                    host: "England", champ: "England", runner: "West Germany", top_scorer: "Eusébio - 9", attendance: 1563135,
+                    matches: 32, goals: 89, total_xg: 85.3, red_cards: 5, yellow_cards: 4, dist: [18, 9, 5],
+                    top_teams: ["Portugal", "Alemania Occ.", "Inglaterra", "Corea del Norte", "Unión Soviética"], top_goals: [17, 15, 11, 5, 10],
+                    participants: ["Inglaterra", "Alemania Occ.", "Portugal", "Unión Soviética", "Corea del Norte", "Argentina", "Brasil", "Francia", "España", "Italia"],
+                    matches_list: [{r:"Cuartos", m:"Portugal v Corea del Norte", s:"5-3", g:8}, {r:"Final", m:"Inglaterra v Alemania Occ.", s:"4-2", g:6}]
+                },
+                "1970": {
+                    host: "Mexico", champ: "Brazil", runner: "Italy", top_scorer: "Gerd Müller - 10", attendance: 1603975,
+                    matches: 32, goals: 95, total_xg: 92.6, red_cards: 0, yellow_cards: 32, dist: [14, 10, 8],
+                    top_teams: ["Brasil", "Alemania Occ.", "Italia", "Perú", "Uruguay"], top_goals: [19, 17, 10, 9, 4],
+                    participants: ["Brasil", "Italia", "Alemania Occ.", "Uruguay", "Perú", "México", "Inglaterra", "Unión Soviética", "Bélgica", "Marruecos"],
+                    matches_list: [{r:"Semifinal", m:"Italia v Alemania Occ.", s:"4-3", g:7}, {r:"Final", m:"Brasil v Italia", s:"4-1", g:5}]
+                },
+                "1974": {
+                    host: "Germany", champ: "West Germany", runner: "Netherlands", top_scorer: "Grzegorz Lato - 7", attendance: 1865753,
+                    matches: 38, goals: 97, total_xg: 94.1, red_cards: 5, yellow_cards: 82, dist: [17, 12, 9],
+                    top_teams: ["Polonia", "Países Bajos", "Alemania Occ.", "Yugoslavia", "Brasil"], top_goals: [16, 15, 14, 12, 6],
+                    participants: ["Alemania Occ.", "Países Bajos", "Polonia", "Brasil", "Yugoslavia", "Suecia", "Alemania Oriental", "Argentina", "Italia", "Chile"],
+                    matches_list: [{r:"Fase 1", m:"Yugoslavia v Zaire", s:"9-0", g:9}, {r:"Segunda Ronda", m:"Países Bajos v Argentina", s:"4-0", g:4}]
+                },
+                "1978": {
+                    host: "Argentina", champ: "Argentina", runner: "Netherlands", top_scorer: "Mario Kempes - 6", attendance: 1545791,
+                    matches: 38, goals: 102, total_xg: 98.4, red_cards: 3, yellow_cards: 88, dist: [19, 11, 8],
+                    top_teams: ["Argentina", "Países Bajos", "Brasil", "Alemania Occ.", "Austria"], top_goals: [15, 15, 11, 10, 7],
+                    participants: ["Argentina", "Países Bajos", "Brasil", "Italia", "Alemania Occ.", "Austria", "Francia", "España", "Escocia", "México"],
+                    matches_list: [{r:"Segunda Ronda", m:"Argentina v Perú", s:"6-0", g:6}, {r:"Segunda Ronda", m:"Alemania Occ. v Austria", s:"2-3", g:5}]
+                },
+                "1982": {
+                    host: "Spain", champ: "Italy", runner: "West Germany", top_scorer: "Paolo Rossi - 6", attendance: 2109727,
+                    matches: 52, goals: 146, total_xg: 140.2, red_cards: 5, yellow_cards: 124, dist: [25, 15, 12],
+                    top_teams: ["Francia", "Brasil", "Alemania Occ.", "Italia", "Hungría"], top_goals: [16, 15, 12, 12, 12],
+                    participants: ["Italia", "Alemania Occ.", "Polonia", "Francia", "Brasil", "Austria", "Argentina", "España", "Inglaterra", "El Salvador", "Chile"],
+                    matches_list: [{r:"Fase Grupos", m:"Hungría v El Salvador", s:"10-1", g:11}, {r:"Fase Grupos", m:"Argelia v Chile", s:"3-2", g:5}]
+                },
+                "1986": {
+                    host: "Mexico", champ: "Argentina", runner: "West Germany", top_scorer: "Gary Lineker - 6", attendance: 2394031,
+                    matches: 52, goals: 132, total_xg: 128.9, red_cards: 8, yellow_cards: 135, dist: [23, 16, 13],
+                    top_teams: ["Argentina", "Francia", "Bélgica", "Brasil", "España"], top_goals: [14, 12, 12, 10, 11],
+                    participants: ["Argentina", "Alemania Occ.", "Francia", "Bélgica", "Brasil", "España", "Inglaterra", "México", "Uruguay", "Paraguay"],
+                    matches_list: [{r:"Octavos", m:"España v Dinamarca", s:"5-1", g:6}, {r:"Fase Grupos", m:"Unión Soviética v Hungría", s:"6-0", g:6}]
+                },
+                "1990": {
+                    host: "Italy", champ: "West Germany", runner: "Argentina", top_scorer: "Salvatore Schillaci - 6", attendance: 2516215,
+                    matches: 52, goals: 115, total_xg: 111.4, red_cards: 16, yellow_cards: 162, dist: [22, 14, 16],
+                    top_teams: ["Alemania Occ.", "Italia", "Checoslovaquia", "Camerún", "Inglaterra"], top_goals: [15, 10, 10, 7, 8],
+                    participants: ["Alemania Occ.", "Argentina", "Italia", "Inglaterra", "Camerún", "Checoslovaquia", "Brasil", "España", "Colombia", "Costa Rica"],
+                    matches_list: [{r:"Fase Grupos", m:"Alemania Occ. v Yugoslavia", s:"4-1", g:5}, {r:"Fase Grupos", m:"EE.UU. v Checoslovaquia", s:"1-5", g:6}]
+                },
+                "1994": {
+                    host: "United States", champ: "Brazil", runner: "Italy", top_scorer: "Hristo Stoichkov, Oleg Salenko - 6", attendance: 3587538,
+                    matches: 52, goals: 141, total_xg: 138.0, red_cards: 15, yellow_cards: 235, dist: [24, 16, 12],
+                    top_teams: ["Suecia", "Brasil", "Bulgaria", "España", "Alemania"], top_goals: [15, 11, 10, 10, 9],
+                    participants: ["Brasil", "Italy", "Suecia", "Bulgaria", "Alemania", "España", "Rumanía", "Países Bajos", "Argentina", "EE.UU.", "Colombia"],
+                    matches_list: [{r:"Fase Grupos", m:"Rusia v Camerún", s:"6-1", g:7}, {r:"Fase Grupos", m:"Argentina v Grecia", s:"4-0", g:4}]
+                },
+                "1998": {
+                    host: "France", champ: "France", runner: "Brazil", top_scorer: "Davor Šuker - 6", attendance: 2903477,
+                    matches: 64, goals: 171, total_xg: 166.5, red_cards: 22, yellow_cards: 258, dist: [30, 18, 16],
+                    top_teams: ["Francia", "Brasil", "Países Bajos", "Croacia", "Argentina"], top_goals: [15, 14, 13, 11, 9],
+                    participants: ["Francia", "Brasil", "Croacia", "Países Bajos", "Argentina", "Alemania", "Inglaterra", "Italia", "España", "México", "Chile"],
+                    matches_list: [{r:"Final", m:"Francia v Brasil", s:"3-0", g:3}, {r:"Fase Grupos", m:"España v Bulgaria", s:"6-1", g:7}]
+                },
+                "2002": {
+                    host: "Korea Republic, Japan", champ: "Brazil", runner: "Germany", top_scorer: "Ronaldo - 8", attendance: 2705337,
+                    matches: 64, goals: 161, total_xg: 158.1, red_cards: 17, yellow_cards: 272, dist: [27, 21, 16],
+                    top_teams: ["Brasil", "Alemania", "España", "Turquía", "Corea del Sur"], top_goals: [18, 14, 10, 10, 8],
+                    participants: ["Brasil", "Alemania", "Turquía", "Corea del Sur", "España", "Inglaterra", "Italia", "Argentina", "Francia", "Japón"],
+                    matches_list: [{r:"Fase Grupos", m:"Alemania v Arabia Saudita", s:"8-0", g:8}, {r:"Fase Grupos", m:"Costa Rica v Brasil", s:"2-5", g:7}]
+                },
+                "2006": {
+                    host: "Germany", champ: "Italy", runner: "France", top_scorer: "Miroslav Klose - 5", attendance: 3352605,
+                    matches: 64, goals: 147, total_xg: 142.0, red_cards: 28, yellow_cards: 305, dist: [32, 14, 18],
+                    top_teams: ["Alemania", "Italia", "Francia", "Argentina", "Brasil"], top_goals: [14, 12, 9, 11, 10],
+                    participants: ["Italia", "Francia", "Alemania", "Portugal", "Argentina", "Brasil", "Inglaterra", "España", "México", "Ecuador"],
+                    matches_list: [{r:"Fase Grupos", m:"Argentina v Serbia y Montenegro", s:"6-0", g:6}, {r:"Fase Grupos", m:"Alemania v Costa Rica", s:"4-2", g:6}]
+                },
+                "2010": {
+                    host: "South Africa", champ: "Spain", runner: "Netherlands", top_scorer: "Wesley Sneijder, Thomas Müller... - 5", attendance: 3178856,
+                    matches: 64, goals: 145, total_xg: 141.6, red_cards: 17, yellow_cards: 260, dist: [30, 16, 18],
+                    top_teams: ["Alemania", "Países Bajos", "Uruguay", "Argentina", "España"], top_goals: [16, 12, 11, 9, 8],
+                    participants: ["España", "Países Bajos", "Alemania", "Uruguay", "Argentina", "Brasil", "Ghana", "Paraguay", "Chile", "México"],
+                    matches_list: [{r:"Cuartos", m:"Argentina v Alemania", s:"0-4", g:4}, {r:"Fase Grupos", m:"Portugal v Corea del Norte", s:"7-0", g:7}]
+                },
+                "2014": {
+                    host: "Brasil", champ: "Alemania", runner: "Argentina", top_scorer: "James Rodríguez - 6", attendance: 3429873,
+                    matches: 64, goals: 171, total_xg: 164.8, red_cards: 10, yellow_cards: 187, dist: [31, 17, 16],
+                    top_teams: ["Alemania", "Países Bajos", "Colombia", "Brasil", "Francia"], top_goals: [18, 15, 12, 11, 10],
+                    participants: ["Argelia", "Argentina", "Australia", "Bélgica", "Bosnia", "Brasil", "Chile", "Colombia", "Costa Rica", "Francia", "Alemania", "España", "Uruguay"],
+                    matches_list: [{r:"Semifinal", m:"Brasil v Alemania", s:"1-7", g:8}, {r:"Fase Grupos", m:"España v Países Bajos", s:"1-5", g:6}]
+                },
+                "2018": {
+                    host: "Rusia", champ: "Francia", runner: "Croacia", top_scorer: "Harry Kane - 6", attendance: 3031768,
+                    matches: 64, goals: 169, total_xg: 161.2, red_cards: 4, yellow_cards: 219, dist: [26, 22, 16],
+                    top_teams: ["Bélgica", "Francia", "Croacia", "Inglaterra", "Rusia"], top_goals: [16, 14, 14, 12, 11],
+                    participants: ["Alemania", "Arabia Saudita", "Argentina", "Bélgica", "Brasil", "Colombia", "Costa Rica", "Croacia", "España", "Francia", "Inglaterra", "Uruguay"],
+                    matches_list: [{r:"Fase Grupos", m:"Bélgica v Túnez", s:"5-2", g:7}, {r:"Final", m:"Francia v Croacia", s:"4-2", g:6}]
+                },
+                "2022": {
+                    host: "Qatar", champ: "Argentina", runner: "Francia", top_scorer: "Kylian Mbappé - 8", attendance: 3404252,
+                    matches: 64, goals: 172, total_xg: 169.3, red_cards: 4, yellow_cards: 224, dist: [28, 19, 17],
+                    top_teams: ["Francia", "Argentina", "Inglaterra", "Portugal", "Países Bajos"], top_goals: [16, 15, 13, 12, 10],
+                    participants: ["Alemania", "Arabia Saudita", "Argentina", "Bélgica", "Brasil", "Costa Rica", "Croacia", "España", "Estados Unidos", "Francia", "Inglaterra", "Países Bajos", "Uruguay"],
+                    matches_list: [{r:"Final", m:"Argentina v Francia", s:"3-3", g:6}, {r:"Fase Grupos", m:"Inglaterra v Irán", s:"6-2", g:8}]
+                }
+            }
+        };
+
+        let chartMetricsObj = null, chartDonaObj = null, chartTopTeamsObj = null;
+
+        function renderDashboard(year) {
+            const info = dataModel.master[year];
+
+            document.getElementById('infoHost').innerText = info.host;
+            document.getElementById('infoChamp').innerText = info.champ;
+            document.getElementById('infoRunner').innerText = info.runner;
+            document.getElementById('infoScorer').innerText = info.top_scorer;
+            document.getElementById('kpiMatches').innerText = info.matches;
+            document.getElementById('kpiGoals').innerText = info.goals;
+            document.getElementById('kpiXG').innerText = info.total_xg;
+            document.getElementById('kpiAttendance').innerText = info.attendance.toLocaleString();
+            document.getElementById('kpiYellow').innerText = info.yellow_cards;
+            document.getElementById('kpiRed').innerText = info.red_cards;
+
+            const partBox = document.getElementById('participantsBox');
+            document.getElementById('countTeams').innerText = info.participants.length;
+            partBox.innerHTML = "";
+            info.participants.forEach(p => {
+                partBox.innerHTML += `<span class="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg">📍 ${p}</span>`;
+            });
+
+            const tBody = document.getElementById('matchesTableBody');
+            tBody.innerHTML = "";
+            info.matches_list.forEach(m => {
+                tBody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-indigo-600 font-bold">${m.r}</td>
+                        <td class="p-3 font-semibold text-slate-900">${m.m}</td>
+                        <td class="p-3 text-center"><span class="bg-slate-100 font-mono font-black text-slate-800 px-2 py-0.5 rounded border border-slate-200">${m.s}</span></td>
+                        <td class="p-3 text-right font-mono font-black text-rose-600 pr-6">${m.g}</td>
+                    </tr>`;
+            });
+
+            const ctxMetrics = document.getElementById('chartMetrics').getContext('2d');
+            if(chartMetricsObj) chartMetricsObj.destroy();
+            
+            if(year === 'ALL') {
+                document.getElementById('mainChartTitle').innerText = "📈 Evolución del Promedio de Goles por Partido (Histórico)";
+                chartMetricsObj = new Chart(ctxMetrics, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(dataModel.timeline),
+                        datasets: [{ label: 'Goles Promedio', data: Object.values(dataModel.timeline).map(t => t.goals_avg), borderColor: '#e11d48', borderWidth: 3, tension: 0.1, fill: false }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } else {
+                document.getElementById('mainChartTitle').innerText = "📊 Comparación del Desempeño Ofensivo: Goles Reales vs Métrica xG";
+                chartMetricsObj = new Chart(ctxMetrics, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Goles Reales', 'Goles Esperados (xG)'],
+                        datasets: [{ data: [info.goals, info.total_xg], backgroundColor: ['#f43f5e', '#2563eb'], borderRadius: 6, barPercentage: 0.4 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+
+            const ctxDona = document.getElementById('chartDona').getContext('2d');
+            if(chartDonaObj) chartDonaObj.destroy();
+            chartDonaObj = new Chart(ctxDona, {
+                type: 'doughnut',
+                data: { labels: ['Victoria Local', 'Victoria Visitante', 'Empate'], datasets: [{ data: info.dist, backgroundColor: ['#4f46e5', '#10b981', '#f59e0b'] }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
+            });
+
+            const ctxTopTeams = document.getElementById('chartTopTeams').getContext('2d');
+            if(chartTopTeamsObj) chartTopTeamsObj.destroy();
+            chartTopTeamsObj = new Chart(ctxTopTeams, {
+                type: 'bar',
+                data: { labels: info.top_teams, datasets: [{ data: info.top_goals, backgroundColor: '#0f172a', borderRadius: 4 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        document.getElementById('yearFilter').addEventListener('change', (e) => renderDashboard(e.target.value));
+        renderDashboard('ALL');
+    </script>
+</body>
+</html>
